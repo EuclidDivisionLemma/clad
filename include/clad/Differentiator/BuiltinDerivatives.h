@@ -1062,6 +1062,36 @@ CUDA_HOST_DEVICE void hypot_pullback(T x, T y, U d_z, T* d_x, T* d_y) {
   *d_y += (y / h) * d_z;
 }
 
+#if __cplusplus >= 201703L
+template <typename T>
+CUDA_HOST_DEVICE ValueAndPushforward<T, T> hermite_pushforward(unsigned int n, T x, unsigned int, T d_x) {
+  return {::std::hermite(n, x), 2 * n * ::std::hermite(n - 1, x) * d_x};
+}
+
+CUDA_HOST_DEVICE inline ValueAndPushforward<float, float> hermitef_pushforward(unsigned int n, float x, unsigned int, float d_x) {
+  return hermite_pushforward(n, x, 0, d_x);
+}
+
+CUDA_HOST_DEVICE inline ValueAndPushforward<long double, long double> hermitel_pushforward(unsigned int n, long double x, unsigned int, long double d_x) {
+  return hermite_pushforward(n, x, 0, d_x);
+}
+
+template <typename T, typename U>
+CUDA_HOST_DEVICE void hermite_pullback(unsigned int n, T x, U d_z, unsigned int*, T* d_x) {
+  *d_x += 2 * n * ::std::hermite(n - 1, x) * d_z;
+}
+
+template <typename T>
+CUDA_HOST_DEVICE void hermitef_pullback(unsigned int n, float x, T d_z, unsigned int*, float* d_x ) {
+  hermite_pullback(n, x, d_z, nullptr, d_x);
+}
+
+template <typename T>
+CUDA_HOST_DEVICE void hermitel_pullback(unsigned int n, long double x, T d_z, unsigned int*, long double* d_x) {
+  hermite_pullback(n, x, d_z, nullptr, d_x);
+}
+#endif
+
 } // namespace std
 
 CUDA_HOST_DEVICE inline ValueAndPushforward<float, float>
