@@ -124,9 +124,11 @@ DerivativeAndOverload BaseForwardModeVisitor::Derive() {
     } else {
       QualType T = m_IndependentVar->getType();
       bool isField = false;
-      if (auto* RD = diffVarInfo.param->getType().getNonReferenceType()->getAsCXXRecordDecl()) {
+      if (auto* RD = diffVarInfo.param->getType()
+                         .getNonReferenceType()
+                         ->getAsCXXRecordDecl()) {
         llvm::SmallVector<llvm::StringRef, 4> ref(diffVarInfo.fields.begin(),
-                                                    diffVarInfo.fields.end());
+                                                  diffVarInfo.fields.end());
         T = utils::ComputeMemExprPathType(m_Sema, RD, ref);
         isField = true;
       }
@@ -804,9 +806,8 @@ StmtDiff BaseForwardModeVisitor::VisitMemberExpr(const MemberExpr* ME) {
       // Try to find the derivative of the member variable wrt independent
       // variable
       auto memberDecl = ME->getMemberDecl();
-      if (m_Variables.find(memberDecl) != std::end(m_Variables)) {
+      if (m_Variables.find(memberDecl) != std::end(m_Variables))
         return StmtDiff(clonedME, m_Variables[memberDecl]);
-      }
     }
     // Is not a real variable. Therefore, derivative is 0.
     auto zero =
@@ -885,9 +886,8 @@ BaseForwardModeVisitor::VisitArraySubscriptExpr(const ArraySubscriptExpr* ASE) {
     }
   } else if (isa<MemberExpr>(clonedBase->IgnoreParenImpCasts())) {
     auto derivedME = cloneDiff.getExpr_dx();
-    if (!isa<MemberExpr>(derivedME->IgnoreParenImpCasts())) {
+    if (!isa<MemberExpr>(derivedME->IgnoreParenImpCasts()))
       return {cloned, zero};
-    }
     auto derivedAS = BuildArraySubscript(derivedME, clonedIndices);
     return {cloned, derivedAS};
   } else {
@@ -1872,9 +1872,8 @@ StmtDiff BaseForwardModeVisitor::VisitSwitchStmt(const SwitchStmt* SS) {
   if (auto CS = dyn_cast<CompoundStmt>(SS->getBody())) {
     // Visit(CS) cannot be used because then we will not be easily able to
     // determine when active switch case label should be changed.
-    for (Stmt* stmt : CS->body()) {
+    for (Stmt* stmt : CS->body())
       activeSC = DeriveSwitchStmtBodyHelper(stmt, activeSC);
-    }
   } else {
     activeSC = DeriveSwitchStmtBodyHelper(SS->getBody(), activeSC);
   }
